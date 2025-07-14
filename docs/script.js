@@ -85,14 +85,10 @@
   // Regex for note trigger (tolerant of leading punctuation/whitespace)
   const NOTE_TRIGGER_RE = /^[\s,.;:!?-]*(note|take a note|record note)\b/i;
 
-  // Web Audio setup
-  let audioCtx, analyserNode, mediaStream, mediaRecorder;
-  const SILENCE_THRESHOLD = 0.03; // lowered threshold to detect silence in noisier rooms
-  const SILENCE_MS = 1800; // wait this long in ms before considering silence the end
-  const MIN_RECORD_MS = 800; // record at least this long to allow brief pauses
-
-  let silenceStart = null;
-  let recordStart = null;
+  // MediaRecorder variables declared above
+  let mediaStream;
+  let mediaRecorder;
+  let isRecording = false;
   let chunks = [];
 
   // ------------------ TTS Status Helper ------------------
@@ -126,10 +122,10 @@
   }
 
   toggleBtn.addEventListener("click", async () => {
-    if (!listening) {
-      await startAssistant();
+    if (!isRecording) {
+      await startRecording();
     } else {
-      stopAssistant();
+      stopRecording();
     }
   });
 
@@ -143,7 +139,7 @@
     URL.revokeObjectURL(url);
   });
 
-  async function startAssistant() {
+  async function startRecording() {
     try {
       log("Requesting microphone access…");
       mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -153,80 +149,29 @@
       return;
     }
 
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioCtx.createMediaStreamSource(mediaStream);
-    analyserNode = audioCtx.createAnalyser();
-    analyserNode.fftSize = 2048;
-    source.connect(analyserNode);
-
     mediaRecorder = new MediaRecorder(mediaStream);
     mediaRecorder.ondataavailable = (e) => {
       if (e.data && e.data.size > 0) chunks.push(e.data);
     };
     mediaRecorder.onstop = handleRecordingStop;
 
-    listening = true;
+    chunks = [];
+    mediaRecorder.start();
+    isRecording = true;
     toggleBtn.textContent = "🛑 Stop Listening";
     toggleBtn.classList.add("active");
-    statusEl.textContent = "Listening for wake word…";
-    statusEl.parentElement.style.display = "block";
-
-    detectAudio();
+    await speakStatus("Listening…");
+    log("Recording started");
   }
 
-  function stopAssistant() {
-    listening = false;
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop();
+      log("Recording stopped (button)");
+    }
+    isRecording = false;
     toggleBtn.textContent = "🎙️ Start Listening";
     toggleBtn.classList.remove("active");
-    statusEl.textContent = "Idle";
-    statusEl.parentElement.style.display = "none";
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-      mediaRecorder.stop();
-    }
-    if (mediaStream) {
-      mediaStream.getTracks().forEach((t) => t.stop());
-    }
-    if (audioCtx) {
-      audioCtx.close();
-    }
-  }
-
-  function detectAudio() {
-    if (!listening) return;
-    const data = new Uint8Array(analyserNode.fftSize);
-    analyserNode.getByteTimeDomainData(data);
-    // Compute RMS
-    let sum = 0;
-    for (let i = 0; i < data.length; i++) {
-      const val = (data[i] - 128) / 128;
-      sum += val * val;
-    }
-    const rms = Math.sqrt(sum / data.length);
-
-    const now = Date.now();
-
-    if (mediaRecorder.state === "inactive" && rms > SILENCE_THRESHOLD) {
-      // Start recording
-      chunks = [];
-      silenceStart = null;
-      recordStart = now;
-      mediaRecorder.start();
-      statusEl.textContent = "Recording…";
-      log("Recording started");
-    }
-
-    if (mediaRecorder.state === "recording") {
-      if (rms <= SILENCE_THRESHOLD) {
-        if (silenceStart === null) silenceStart = now;
-        if (now - silenceStart > SILENCE_MS && now - recordStart > MIN_RECORD_MS) {
-          mediaRecorder.stop();
-        }
-      } else {
-        silenceStart = null; // reset – we got voice
-      }
-    }
-
-    requestAnimationFrame(detectAudio);
   }
 
   async function handleRecordingStop() {
@@ -267,7 +212,6 @@
       userText = userText.slice(0, -endWord.length).trim();
     }
 
-    await speakStatus("Listening…");
     appendChat("user", userText);
 
     let assistantReply = "";
