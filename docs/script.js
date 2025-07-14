@@ -149,11 +149,18 @@
       return;
     }
 
-    mediaRecorder = new MediaRecorder(mediaStream);
+    const options = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+      ? { mimeType: "audio/webm;codecs=opus" }
+      : {};
+    mediaRecorder = new MediaRecorder(mediaStream, options);
     mediaRecorder.ondataavailable = (e) => {
+      log("dataavailable size=" + e.data.size);
       if (e.data && e.data.size > 0) chunks.push(e.data);
     };
-    mediaRecorder.onstop = handleRecordingStop;
+    mediaRecorder.onstop = () => {
+      log("MediaRecorder stop event fired");
+      handleRecordingStop();
+    };
 
     chunks = [];
     mediaRecorder.start();
@@ -166,6 +173,8 @@
 
   function stopRecording() {
     if (mediaRecorder && mediaRecorder.state === "recording") {
+      // Ensure we flush the last chunk
+      mediaRecorder.requestData();
       mediaRecorder.stop();
       log("Recording stopped (button)");
     }
@@ -190,6 +199,12 @@
         headers: headers(),
         body: formData,
       });
+      if (!resp.ok) {
+        const errTxt = await resp.text();
+        log("Transcription HTTP error: " + resp.status + " " + errTxt);
+        statusEl.textContent = "Transcription error";
+        return;
+      }
       const json = await resp.json();
       transcriptText = json.text.trim();
       log("Transcript received: " + transcriptText);
