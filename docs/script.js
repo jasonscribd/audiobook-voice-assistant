@@ -78,9 +78,11 @@
   // Web Audio setup
   let audioCtx, analyserNode, mediaStream, mediaRecorder;
   const SILENCE_THRESHOLD = 0.05; // volume threshold for voice vs silence
-  const SILENCE_MS = 1200; // end recording after this duration of silence
+  const SILENCE_MS = 1800; // wait this long in ms before considering silence the end
+  const MIN_RECORD_MS = 800; // record at least this long to allow brief pauses
 
   let silenceStart = null;
+  let recordStart = null;
   let chunks = [];
 
   // ------------------ TTS Status Helper ------------------
@@ -193,6 +195,7 @@
       // Start recording
       chunks = [];
       silenceStart = null;
+      recordStart = now;
       mediaRecorder.start();
       statusEl.textContent = "Recording…";
       log("Recording started");
@@ -201,7 +204,7 @@
     if (mediaRecorder.state === "recording") {
       if (rms <= SILENCE_THRESHOLD) {
         if (silenceStart === null) silenceStart = now;
-        if (now - silenceStart > SILENCE_MS) {
+        if (now - silenceStart > SILENCE_MS && now - recordStart > MIN_RECORD_MS) {
           mediaRecorder.stop();
         }
       } else {
