@@ -1,0 +1,44 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 2rem auto;
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+h1 {
+  text-align: center;
+}
+
+button {
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  margin: 0.5rem 0;
+  cursor: pointer;
+}
+
+.log {
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  height: 200px;
+  overflow-y: auto;
+  background: #fafafa;
+}
+
+.status {
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.assistant {
+  color: #3333cc;
+}
+
+.user {
+  color: #008800;
+}
+
+.note {
+  background: #fffae5;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+} 
