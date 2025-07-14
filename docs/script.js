@@ -15,6 +15,7 @@
   const wakeWordInput = document.getElementById("wake-word-input");
   const voiceSelect = document.getElementById("voice-select");
   const promptInput = document.getElementById("prompt-input");
+  const endWordInput = document.getElementById("end-word-input");
   const saveSettingsBtn = document.getElementById("save-settings");
 
   let config = await fetch("config.json").then((r) => r.json());
@@ -26,18 +27,21 @@
     const storedWake = localStorage.getItem("WAKE_WORD") || config.wake_word;
     const storedVoice = localStorage.getItem("VOICE") || config.voice;
     const storedPrompt = localStorage.getItem("ASSISTANT_PROMPT") || config.assistant_prompt;
+    const storedEnd = localStorage.getItem("END_WORD") || "thank you";
 
     // populate fields
     apiKeyInput.value = storedKey;
     wakeWordInput.value = storedWake;
     voiceSelect.value = storedVoice;
     promptInput.value = storedPrompt;
+    endWordInput.value = storedEnd;
 
     return {
       apiKey: storedKey,
       wakeWord: storedWake.toLowerCase(),
       voice: storedVoice,
       prompt: storedPrompt,
+      endWord: storedEnd.toLowerCase(),
     };
   }
 
@@ -46,12 +50,14 @@
     localStorage.setItem("WAKE_WORD", wakeWordInput.value.trim().toLowerCase());
     localStorage.setItem("VOICE", voiceSelect.value);
     localStorage.setItem("ASSISTANT_PROMPT", promptInput.value.trim());
+    localStorage.setItem("END_WORD", endWordInput.value.trim().toLowerCase());
 
     // update in-memory vars without reload
     apiKey = apiKeyInput.value.trim();
     WAKE_WORD_CONST = wakeWordInput.value.trim().toLowerCase();
     voice = voiceSelect.value;
     assistantPrompt = promptInput.value.trim() || config.assistant_prompt;
+    endWord = endWordInput.value.trim().toLowerCase();
     messages = [{ role: "system", content: assistantPrompt }];
 
     alert("Settings saved ✅");
@@ -59,7 +65,7 @@
 
   saveSettingsBtn.addEventListener("click", saveSettings);
 
-  let { apiKey, wakeWord, voice, prompt: assistantPrompt } = loadSettings();
+  let { apiKey, wakeWord, voice, prompt: assistantPrompt, endWord } = loadSettings();
   let WAKE_WORD_CONST = wakeWord; // mutable wake word variable
 
   if (!apiKey) {
@@ -77,7 +83,7 @@
 
   // Web Audio setup
   let audioCtx, analyserNode, mediaStream, mediaRecorder;
-  const SILENCE_THRESHOLD = 0.05; // volume threshold for voice vs silence
+  const SILENCE_THRESHOLD = 0.03; // lowered threshold to detect silence in noisier rooms
   const SILENCE_MS = 1800; // wait this long in ms before considering silence the end
   const MIN_RECORD_MS = 800; // record at least this long to allow brief pauses
 
@@ -241,13 +247,18 @@
       return;
     }
 
-    if (!transcriptText.toLowerCase().startsWith(WAKE_WORD_CONST)) {
+    const lcTranscript = transcriptText.toLowerCase();
+    if (!lcTranscript.startsWith(WAKE_WORD_CONST)) {
       statusEl.textContent = "Wake word not detected. Listening…";
       log("Wake word missing – discarded transcript");
       return;
     }
 
-    const userText = transcriptText.slice(WAKE_WORD_CONST.length).trim();
+    let userText = transcriptText.slice(WAKE_WORD_CONST.length).trim();
+    if (endWord && userText.toLowerCase().endsWith(endWord)) {
+      userText = userText.slice(0, -endWord.length).trim();
+    }
+
     await speakStatus("Listening…");
     appendChat("user", userText);
 
