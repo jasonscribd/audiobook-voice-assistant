@@ -46,7 +46,7 @@
 
   // Web Audio setup
   let audioCtx, analyserNode, mediaStream, mediaRecorder;
-  const SILENCE_THRESHOLD = 0.02; // volume
+  const SILENCE_THRESHOLD = 0.05; // volume threshold for voice vs silence
   const SILENCE_MS = 1200; // end recording after this duration of silence
 
   let silenceStart = null;
