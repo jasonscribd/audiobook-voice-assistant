@@ -52,6 +52,35 @@
   let silenceStart = null;
   let chunks = [];
 
+  // ------------------ TTS Status Helper ------------------
+  async function speakStatus(text) {
+    try {
+      const ttsBody = {
+        model: "tts-1",
+        voice: config.voice,
+        input: text,
+        format: "wav",
+      };
+      const resp = await fetch("https://api.openai.com/v1/audio/speech", {
+        method: "POST",
+        headers: {
+          ...headers(),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(ttsBody),
+      });
+      const arrayBuffer = await resp.arrayBuffer();
+      const audioBlob = new Blob([arrayBuffer], { type: "audio/wav" });
+      const url = URL.createObjectURL(audioBlob);
+      const audio = new Audio(url);
+      await audio.play();
+      await new Promise((res) => audio.addEventListener("ended", res, { once: true }));
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("speakStatus error", e);
+    }
+  }
+
   toggleBtn.addEventListener("click", async () => {
     if (!listening) {
       await startAssistant();
@@ -177,15 +206,18 @@
     }
 
     const userText = transcriptText.slice(WAKE_WORD.length).trim();
+    await speakStatus("Listening…");
     appendChat("user", userText);
 
     let assistantReply = "";
     if (/^(note|take a note|record note)/i.test(userText)) {
       const noteContent = userText.replace(/^(note|take a note|record note)/i, "").trim();
+      await speakStatus("Saving your note.");
       notes.push(noteContent);
       appendNote(noteContent);
       assistantReply = "Your note has been saved.";
     } else {
+      await speakStatus("Looking that up.");
       messages.push({ role: "user", content: userText });
       statusEl.textContent = "Generating answer…";
       const chatBody = {
