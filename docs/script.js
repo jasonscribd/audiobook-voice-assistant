@@ -7,6 +7,10 @@
   const chatLog = document.getElementById("chat-log");
   const notesLog = document.getElementById("notes-log");
   const dlNotesBtn = document.getElementById("download-notes");
+  // Debug log elements
+  const debugLogEl = document.getElementById("debug-log");
+  const clearLogBtn = document.getElementById("clear-log");
+  const downloadLogBtn = document.getElementById("download-log");
   const apiKeyInput = document.getElementById("api-key-input");
   const wakeWordInput = document.getElementById("wake-word-input");
   const voiceSelect = document.getElementById("voice-select");
@@ -82,6 +86,7 @@
   // ------------------ TTS Status Helper ------------------
   async function speakStatus(text) {
     try {
+      log("[speakStatus] " + text);
       const ttsBody = {
         model: "tts-1",
         voice: getVoice(),
@@ -128,8 +133,10 @@
 
   async function startAssistant() {
     try {
+      log("Requesting microphone access…");
       mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (err) {
+      log("Microphone access denied: " + err);
       alert("Microphone access denied.");
       return;
     }
@@ -188,6 +195,7 @@
       silenceStart = null;
       mediaRecorder.start();
       statusEl.textContent = "Recording…";
+      log("Recording started");
     }
 
     if (mediaRecorder.state === "recording") {
@@ -206,6 +214,7 @@
 
   async function handleRecordingStop() {
     statusEl.textContent = "Transcribing…";
+    log("Recording stopped, sending transcription (" + (blob.size / 1024).toFixed(1) + " KB)");
     const blob = new Blob(chunks, { type: "audio/webm" });
 
     const formData = new FormData();
@@ -221,14 +230,17 @@
       });
       const json = await resp.json();
       transcriptText = json.text.trim();
+      log("Transcript received: " + transcriptText);
     } catch (e) {
       console.error(e);
       statusEl.textContent = "Transcription error";
+      log("Transcription error: " + e);
       return;
     }
 
     if (!transcriptText.toLowerCase().startsWith(WAKE_WORD_CONST)) {
       statusEl.textContent = "Wake word not detected. Listening…";
+      log("Wake word missing – discarded transcript");
       return;
     }
 
@@ -242,9 +254,11 @@
       await speakStatus("Saving your note.");
       notes.push(noteContent);
       appendNote(noteContent);
+      log("Note captured: " + noteContent);
       assistantReply = "Your note has been saved.";
     } else {
       await speakStatus("Looking that up.");
+      log("Querying ChatGPT with: " + userText);
       messages.push({ role: "user", content: userText });
       statusEl.textContent = "Generating answer…";
       const chatBody = {
@@ -262,10 +276,12 @@
         });
         const data = await resp.json();
         assistantReply = data.choices[0].message.content.trim();
+        log("Assistant reply received");
         messages.push({ role: "assistant", content: assistantReply });
       } catch (e) {
         console.error(e);
         statusEl.textContent = "Chat error";
+        log("Chat error: " + e);
         return;
       }
     }
@@ -301,6 +317,7 @@
     } catch (e) {
       console.error(e);
       statusEl.textContent = "TTS error";
+      log("TTS error: " + e);
     }
   }
 
@@ -318,5 +335,30 @@
     p.textContent = text;
     notesLog.appendChild(p);
     notesLog.scrollTop = notesLog.scrollHeight;
+  }
+
+  // --------- Debug logging helper ---------
+  function log(msg) {
+    const ts = new Date().toLocaleTimeString();
+    console.log(msg);
+    if (debugLogEl) {
+      debugLogEl.value += `[${ts}] ${msg}\n`;
+      debugLogEl.scrollTop = debugLogEl.scrollHeight;
+    }
+  }
+
+  if (clearLogBtn) {
+    clearLogBtn.addEventListener("click", () => (debugLogEl.value = ""));
+  }
+  if (downloadLogBtn) {
+    downloadLogBtn.addEventListener("click", () => {
+      const blob = new Blob([debugLogEl.value], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "debug_log.txt";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
   }
 })(); 
