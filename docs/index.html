@@ -10,6 +10,20 @@
   <h1>📚 Audiobook Voice Assistant</h1>
   <p class="status">Status: <span id="status-text">Idle</span></p>
 
+  <!-- Settings UI -->
+  <details style="margin-bottom:1rem;">
+    <summary><strong>Settings</strong></summary>
+    <div style="margin-top:0.5rem;">
+      <label>OpenAI API Key:<br>
+        <input type="password" id="api-key-input" style="width:100%;" placeholder="sk-..." />
+      </label><br><br>
+      <label>Wake Word:<br>
+        <input type="text" id="wake-word-input" style="width:100%;" placeholder="hey bookbot" />
+      </label><br><br>
+      <button id="save-settings">Save Settings</button>
+    </div>
+  </details>
+
   <button id="toggle-btn">Enable Assistant</button>
 
   <section>

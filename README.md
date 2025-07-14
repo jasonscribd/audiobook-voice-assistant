@@ -103,3 +103,15 @@ https://<username>.github.io/<repo>/
 The web client uses the same `config.json` for model, voice, prompt, and wake word. Edit it to experiment with different voices or personalities.
 
 --- 
+
+### Adjusting API Key & Wake Word (Web)
+
+Open the **Settings** accordion at the top of the page:
+
+* Paste or replace your **OpenAI API Key** (stored in the browser’s localStorage).  
+* Type any custom **wake word** (case-insensitive).  
+* Click **Save Settings**.  
+
+Changes take effect immediately—no reload or redeploy needed.
+
+--- 

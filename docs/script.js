@@ -7,23 +7,38 @@
   const chatLog = document.getElementById("chat-log");
   const notesLog = document.getElementById("notes-log");
   const dlNotesBtn = document.getElementById("download-notes");
+  const apiKeyInput = document.getElementById("api-key-input");
+  const wakeWordInput = document.getElementById("wake-word-input");
+  const saveSettingsBtn = document.getElementById("save-settings");
 
   let config = await fetch("config.json").then((r) => r.json());
-  const WAKE_WORD = config.wake_word.toLowerCase();
+  // We will compute WAKE_WORD after loading persisted settings
 
-  let apiKey = localStorage.getItem("OPENAI_API_KEY");
-  if (!apiKey) {
-    apiKey = prompt("Enter your OPENAI_API_KEY");
-    if (!apiKey) {
-      alert("API key required.");
-      return;
-    }
-    localStorage.setItem("OPENAI_API_KEY", apiKey);
+  // ------------------ Settings Persistence ------------------
+  function loadSettings() {
+    const storedKey = localStorage.getItem("OPENAI_API_KEY") || "";
+    const storedWake = localStorage.getItem("WAKE_WORD") || config.wake_word;
+    apiKeyInput.value = storedKey;
+    wakeWordInput.value = storedWake;
+    return { apiKey: storedKey, wakeWord: storedWake.toLowerCase() };
   }
 
-  const headers = {
-    Authorization: `Bearer ${apiKey}`,
-  };
+  function saveSettings() {
+    localStorage.setItem("OPENAI_API_KEY", apiKeyInput.value.trim());
+    localStorage.setItem("WAKE_WORD", wakeWordInput.value.trim().toLowerCase());
+    alert("Settings saved ✅");
+  }
+
+  saveSettingsBtn.addEventListener("click", saveSettings);
+
+  let { apiKey, wakeWord } = loadSettings();
+  const WAKE_WORD = wakeWord; // final wake word in lower case
+
+  if (!apiKey) {
+    statusEl.textContent = "Please enter API key in Settings.";
+  }
+
+  const headers = () => ({ Authorization: `Bearer ${localStorage.getItem("OPENAI_API_KEY")}` });
 
   let listening = false;
   let messages = [{ role: "system", content: config.assistant_prompt }];
@@ -145,7 +160,7 @@
     try {
       const resp = await fetch("https://api.openai.com/v1/audio/transcriptions", {
         method: "POST",
-        headers,
+        headers: headers(),
         body: formData,
       });
       const json = await resp.json();
@@ -181,7 +196,7 @@
         const resp = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
-            ...headers,
+            ...headers(),
             "Content-Type": "application/json",
           },
           body: JSON.stringify(chatBody),
@@ -210,7 +225,7 @@
       const resp = await fetch("https://api.openai.com/v1/audio/speech", {
         method: "POST",
         headers: {
-          ...headers,
+          ...headers(),
           "Content-Type": "application/json",
         },
         body: JSON.stringify(ttsBody),
