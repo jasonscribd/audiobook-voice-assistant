@@ -3,54 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Audiobook Voice Assistant</title>
+  <title>Audiobook Scout</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>📚 Audiobook Voice Assistant</h1>
+  <h1>📚 Audiobook Scout</h1>
   <p class="status">Status: <span id="status-text">Idle</span></p>
 
-  <!-- Settings UI -->
-  <details style="margin-bottom:1rem;">
-    <summary><strong>Settings</strong></summary>
-    <div style="margin-top:0.5rem;">
-      <label>OpenAI API Key:<br>
-        <input type="password" id="api-key-input" style="width:100%;" placeholder="sk-..." />
-      </label><br><br>
-      <label>Wake Word:<br>
-        <input type="text" id="wake-word-input" style="width:100%;" placeholder="hey bookbot" />
-      </label><br><br>
-      <label>End Word (to finish speaking):<br>
-        <input type="text" id="end-word-input" style="width:100%;" placeholder="thank you" />
-      </label><br><br>
-      <label>Voice:<br>
-        <select id="voice-select" style="width:100%;">
-          <option value="alloy">alloy</option>
-          <option value="echo">echo</option>
-          <option value="fable">fable</option>
-          <option value="onyx">onyx</option>
-          <option value="nova">nova</option>
-          <option value="shimmer">shimmer</option>
-        </select>
-      </label><br><br>
-      <label>Assistant Prompt:<br>
-        <textarea id="prompt-input" rows="5" style="width:100%;" placeholder="System prompt for the assistant..."></textarea>
-      </label><br><br>
-      <button id="save-settings">Save Settings</button>
-    </div>
-  </details>
-
-  <button id="toggle-btn">Enable Assistant</button>
+  <button id="toggle-btn" class="primary-btn">Enable Assistant</button>
 
   <section>
     <h2>Conversation</h2>
     <div id="chat-log" class="log"></div>
   </section>
 
-  <section>
-    <h2>Notes</h2>
-    <div id="notes-log" class="log"></div>
-    <button id="download-notes">Download Notes</button>
+  <!-- Bottom accordion -->
+  <section style="margin-top:1rem;">
+    <details>
+      <summary><strong>Settings & Notes</strong></summary>
+      <div style="margin-top:0.5rem;">
+        <!-- Notes -->
+        <h3>Saved Notes</h3>
+        <div id="notes-log" class="log" style="height:150px;"></div>
+        <button id="download-notes">Download Notes</button>
+        <hr/>
+        <!-- Settings UI moved here -->
+        <h3>Preferences</h3>
+        <label>OpenAI API Key:<br>
+          <input type="password" id="api-key-input" style="width:100%;" placeholder="sk-..." />
+        </label><br><br>
+        <label>Wake Word:<br>
+          <input type="text" id="wake-word-input" style="width:100%;" placeholder="hey bookbot" />
+        </label><br><br>
+        <label>End Word:<br>
+          <input type="text" id="end-word-input" style="width:100%;" placeholder="thank you" />
+        </label><br><br>
+        <label>Voice:<br>
+          <select id="voice-select" style="width:100%;">
+            <option value="alloy">alloy</option>
+            <option value="echo">echo</option>
+            <option value="fable">fable</option>
+            <option value="onyx">onyx</option>
+            <option value="nova">nova</option>
+            <option value="shimmer">shimmer</option>
+          </select>
+        </label><br><br>
+        <label>Assistant Prompt:<br>
+          <textarea id="prompt-input" rows="5" style="width:100%;" placeholder="System prompt for the assistant..."></textarea>
+        </label><br><br>
+        <button id="save-settings" class="primary-btn">Save Settings</button>
+      </div>
+    </details>
   </section>
 
   <section>

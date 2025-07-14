@@ -1,12 +1,28 @@
 body {
   font-family: Arial, sans-serif;
-  margin: 2rem auto;
+  margin: 0 auto;
+  padding: 1rem;
   max-width: 600px;
   line-height: 1.5;
 }
 
 h1 {
   text-align: center;
+  font-size: 1.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.primary-btn {
+  display: block;
+  width: 100%;
+  background: #3366ff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  margin: 0.5rem 0 1rem;
+  cursor: pointer;
 }
 
 button {
@@ -19,14 +35,27 @@ button {
 .log {
   border: 1px solid #ddd;
   padding: 0.5rem;
-  height: 200px;
+  height: 220px;
   overflow-y: auto;
   background: #fafafa;
 }
 
+@media (max-width: 480px) {
+  body {
+    padding: 0.5rem;
+  }
+  .log {
+    height: 160px;
+  }
+  h1 {
+    font-size: 1.3rem;
+  }
+}
+
 .status {
   font-weight: bold;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
 }
 
 .assistant {
