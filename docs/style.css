@@ -1,8 +1,8 @@
 body {
   font-family: Arial, sans-serif;
   margin: 0 auto;
-  padding: 1rem;
-  max-width: 600px;
+  padding: 1.2rem;
+  max-width: 640px;
   line-height: 1.5;
 }
 
@@ -15,14 +15,30 @@ h1 {
 .primary-btn {
   display: block;
   width: 100%;
-  background: #3366ff;
+  background: linear-gradient(135deg, #5b8cff 0%, #3366ff 100%);
   color: #fff;
   border: none;
-  border-radius: 6px;
-  padding: 0.8rem 1rem;
-  font-size: 1rem;
-  margin: 0.5rem 0 1rem;
+  border-radius: 8px;
+  padding: 0.95rem 1rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  margin: 0.75rem 0 1rem;
   cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.primary-btn:hover {
+  transform: translateY(-1px);
+}
+
+.primary-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2) inset;
+}
+
+.primary-btn.active {
+  background: linear-gradient(135deg, #ff5b5b 0%, #ff3333 100%);
 }
 
 button {
@@ -42,7 +58,7 @@ button {
 
 @media (max-width: 480px) {
   body {
-    padding: 0.5rem;
+    padding: 1rem;
   }
   .log {
     height: 160px;
@@ -53,9 +69,10 @@ button {
 }
 
 .status {
-  font-weight: bold;
+  font-weight: 500;
   margin-bottom: 0.5rem;
   text-align: center;
+  color: #555;
 }
 
 .assistant {

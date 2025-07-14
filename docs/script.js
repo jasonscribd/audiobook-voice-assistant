@@ -70,6 +70,7 @@
 
   if (!apiKey) {
     statusEl.textContent = "Please enter API key in Settings.";
+    statusEl.parentElement.style.display = "block";
   }
 
   const headers = () => ({ Authorization: `Bearer ${localStorage.getItem("OPENAI_API_KEY")}` });
@@ -165,16 +166,20 @@
     mediaRecorder.onstop = handleRecordingStop;
 
     listening = true;
-    toggleBtn.textContent = "Disable Assistant";
+    toggleBtn.textContent = "🛑 Stop Listening";
+    toggleBtn.classList.add("active");
     statusEl.textContent = "Listening for wake word…";
+    statusEl.parentElement.style.display = "block";
 
     detectAudio();
   }
 
   function stopAssistant() {
     listening = false;
-    toggleBtn.textContent = "Enable Assistant";
+    toggleBtn.textContent = "🎙️ Start Listening";
+    toggleBtn.classList.remove("active");
     statusEl.textContent = "Idle";
+    statusEl.parentElement.style.display = "none";
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop();
     }
