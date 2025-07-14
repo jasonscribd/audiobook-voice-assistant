@@ -81,6 +81,9 @@
   let messages = [{ role: "system", content: assistantPrompt }];
   let notes = [];
 
+  // Regex for note trigger (tolerant of leading punctuation/whitespace)
+  const NOTE_TRIGGER_RE = /^[\s,.;:!?-]*(note|take a note|record note)\b/i;
+
   // Web Audio setup
   let audioCtx, analyserNode, mediaStream, mediaRecorder;
   const SILENCE_THRESHOLD = 0.03; // lowered threshold to detect silence in noisier rooms
@@ -263,8 +266,8 @@
     appendChat("user", userText);
 
     let assistantReply = "";
-    if (/^(note|take a note|record note)/i.test(userText)) {
-      const noteContent = userText.replace(/^(note|take a note|record note)/i, "").trim();
+    if (NOTE_TRIGGER_RE.test(userText)) {
+      const noteContent = userText.replace(NOTE_TRIGGER_RE, "").trim();
       await speakStatus("Saving your note.");
       notes.push(noteContent);
       appendNote(noteContent);
